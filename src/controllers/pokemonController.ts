@@ -5,8 +5,9 @@ import pokemonStat from '../models/pokemonStat';
 
 interface PokemonData {
   name: string;
-  attributes: { [key: string]: string | number }[];
+  pokemonAttributes: { [key: string]: string | number }[];
 }
+
 
 export const createPokemon = async (req: Request, res: Response) => {
   try {
@@ -14,50 +15,52 @@ export const createPokemon = async (req: Request, res: Response) => {
 
     // Iterate over each Pokemon object in the JSON array
     for (const pokemonData of jsonData) {
-      const { name, attributes } = pokemonData;
+      const { name, pokemonAttributes } = pokemonData;
 
       // Check if the data already exists in each table
-      let createdName:any;
-      const existingName = await PokemonName.findOne({ where: { pokemonName: name } });
-      if (existingName) {
-        console.log(existingName);
-        console.log(`Data for ${name} already exists. Skipping insertion.`);      
-      }      
-      else {
-        createdName = await PokemonName.create({ pokemonName:name });
-      }           
+      const [createdName, created] = await PokemonName.findOrCreate({ 
+        where: { pokemonName: name },
+        defaults: {
+          pokemonName: name
+        } 
+      });
+      if (!created) {        
+        console.log(`Data for ${name} already exists. Skipping insertion.`);   
+      }       
 
-      // Check if the attributes with the same names already exist in PokemonAttributes table
-      const existingAttributes = await pokemonAttribute.findAll();
-      const existingAttributeNames = existingAttributes.map((attribute) => attribute.attributeName);
-      console.log(existingAttributeNames);
-
-      // Insert the non-existing attributes into PokemonAttributes table
+      // // Insert the non-existing attributes into PokemonAttributes table
       const createdAttributes:any = [];
-      for (const attribute of attributes) {
-        const attributeKeyName = Object.keys(attribute)[0]; // Get the attribute name
-        console.log(attributeKeyName);
-        const attributeValue = attribute[attributeKeyName]; // Get the attribute value
+      for (const pokeAttribute of pokemonAttributes) {
+        const attributeKeyName = Object.keys(pokeAttribute)[0]; // Get the attribute name        
+        const attributeValue = pokeAttribute[attributeKeyName]; // Get the attribute value
 
-        if (!existingAttributeNames.includes(attributeKeyName)) {
-          const createdAttribute = await pokemonAttribute.create({ attributeName: attributeKeyName });
-          const attributeRow = {
-            createdAttributeId:createdAttribute.id,
-            createdAttributeValue:attributeValue        
-          }
-          createdAttributes.push(attributeRow);
+        const [createdAttribute,created] = await pokemonAttribute.findOrCreate({
+           where: {attributeName: attributeKeyName},
+           defaults:{
+            attributeName:attributeKeyName
+           }
+        });
+        const attributeRow = {
+          createdAttributeId:createdAttribute.id,
+          createdAttributeValue:attributeValue        
         }
-      }
-
+        if (created){
+          createdAttributes.push(attributeRow);
+        }        
+      }    
       // Insert the Pokemon name and attributes into PokemonStat table
       const createdStats:any = [];
       for (const attributeRow of createdAttributes) {
-        const createdStat = await pokemonStat.create({
-          pokemonId: !existingName ? createdName.id : existingName,
-          pokemonAttributeId: attributeRow.createdAttributeId,
-          attributeLevel: attributeRow.createdAttributeValue
+        const [createdStat,created] = await pokemonStat.findOrCreate({
+          where:{pokemonId : createdName.id, pokemonAttributeId: attributeRow.createdAttributeId},
+          defaults:{
+            pokemonId: createdName.id,
+            pokemonAttributeId: attributeRow.createdAttributeId,
+            attributeLevel: attributeRow.createdAttributeValue
+          }          
         });
-        createdStats.push(createdStat);
+        if (created)
+          createdStats.push(createdStat);
       }
 
       console.log(`Inserted data for ${name} into all three tables.`);

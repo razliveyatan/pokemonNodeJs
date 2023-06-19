@@ -1,8 +1,16 @@
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../config/database';
 
-class PokemonName extends Model {
-  public pokemonName!: string;
+interface PokemonNameInterface {
+  id: number;
+  pokemonName: string;
+}
+
+interface PokemonNameCreationAttributes extends Optional<PokemonNameInterface, 'id'> {}
+
+class PokemonName extends Model<PokemonNameInterface, PokemonNameCreationAttributes> implements PokemonNameInterface {
+  declare id:number;
+  declare pokemonName: string;
 
   static initModel(): void {
     PokemonName.init(
@@ -11,6 +19,7 @@ class PokemonName extends Model {
           type: DataTypes.INTEGER,
           autoIncrement: true,
           primaryKey: true,
+          unique:true,
         },
         pokemonName: {
           type: DataTypes.STRING,

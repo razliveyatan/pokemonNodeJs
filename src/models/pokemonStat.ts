@@ -13,10 +13,10 @@ interface PokemonStatInterface {
 interface PokemonStatCreation extends Optional<PokemonStatInterface, 'id'> {}
 
 class pokemonStat extends Model<PokemonStatInterface, PokemonStatCreation> implements PokemonStatInterface {
-  public id!: number;
-  public attributeLevel!: number;
-  public pokemonId!: number;
-  public pokemonAttributeId!:number;
+  declare id: number;
+  declare attributeLevel: number;
+  declare pokemonId: number;
+  declare pokemonAttributeId:number;
 
   // Sequelize model initialization
   static initModel(): void {
@@ -26,6 +26,7 @@ class pokemonStat extends Model<PokemonStatInterface, PokemonStatCreation> imple
           type: DataTypes.INTEGER,
           autoIncrement: true,
           primaryKey: true,
+          unique:true,
         },
         attributeLevel: {
           type: DataTypes.INTEGER,

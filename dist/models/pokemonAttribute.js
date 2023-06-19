@@ -14,6 +14,7 @@ class pokemonAttribute extends sequelize_1.Model {
                 type: sequelize_1.DataTypes.INTEGER,
                 autoIncrement: true,
                 primaryKey: true,
+                unique: true,
             },
             attributeName: {
                 type: sequelize_1.DataTypes.STRING,

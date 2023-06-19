@@ -9,8 +9,8 @@ interface PokemonAttributeInterface {
 interface PokemonAttributeCreation extends Optional<PokemonAttributeInterface, 'id'> {}
 
 class pokemonAttribute extends Model<PokemonAttributeInterface, PokemonAttributeCreation> implements PokemonAttributeInterface {
-  public id!: number;
-  public attributeName!: string;
+  declare id: number;
+  declare attributeName: string;
 
   // Add any associations or methods here if needed
 
@@ -22,6 +22,7 @@ class pokemonAttribute extends Model<PokemonAttributeInterface, PokemonAttribute
           type: DataTypes.INTEGER,
           autoIncrement: true,
           primaryKey: true,
+          unique:true,
         },
         attributeName: {
           type: DataTypes.STRING,
